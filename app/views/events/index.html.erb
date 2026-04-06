@@ -1,0 +1,75 @@
+<div class="events-container">
+  <h1>Events</h1>
+
+  <div class="events-grid">
+    <% @events.each do |event| %>
+      <div class="event-card">
+
+        <% if event.image_url.present? %>
+          <img src="<%= event.image_url %>" class="event-image">
+        <% end %>
+
+        <div class="event-content">
+
+          <div class="event-title">
+            <%= event.title %>
+          </div>
+
+          <div class="event-meta">
+            📍 <%= event.city %> - <%= event.venue_name %>
+          </div>
+
+          <div class="event-meta">
+            🕒 <%= event.starts_at&.strftime("%d %b %Y, %I:%M %p") %>
+          </div>
+
+          <div class="event-price">
+            💰
+            <%= event.price_cents.present? ? "#{event.price_cents / 100.0} #{event.currency}" : "Free" %>
+          </div>
+
+          <!-- ACTION AREA (IMPORTANT for next step) -->
+          <div class="event-actions">
+
+            <a href="<%= event.url %>" target="_blank" class="btn btn-outline">
+              View
+            </a>
+            <div class="event-actions">
+                <%= button_to "👍 #{event.upvotes_count}",
+                    "/events/#{event.id}/upvote",
+                    method: :post %>
+
+                <%= button_to "👎 #{event.downvotes_count}",
+                    "/events/#{event.id}/downvote",
+                    method: :post %>
+            </div>
+          </div>
+        </div>
+
+        <div class="event-description">
+          <p>
+            <%= truncate(event.description, length: 120) %>
+            <div style="margin-top: 10px;">
+              <% if event.description.length > 120 %>
+                <a href="<%= event.url %>" target="_blank" class="btn btn-outline">
+                  Read More
+                </a>
+              <% end %>
+            </div>
+          </p>
+        </div>
+      </div>
+    <% end %>
+  </div>
+
+  <!-- Pagination -->
+  <div style="margin-top: 30px;">
+    <% if @page > 1 %>
+      <%= link_to "← Previous", root_path(page: @page - 1) %>
+    <% end %>
+
+    <% if @page < @total_pages %>
+      <%= link_to "Next →", root_path(page: @page + 1) %>
+    <% end %>
+  </div>
+</div>

@@ -1,0 +1,14 @@
+<div id="clerk-sign-in"></div>
+
+<script>
+  document.addEventListener('turbo:load', async function () {
+    const container = document.getElementById('clerk-sign-in');
+    
+    if (container && window.Clerk) {
+      if (!Clerk.loaded) {
+        await Clerk.load();
+      }
+      Clerk.mountSignIn(container);
+    }
+  });
+</script>

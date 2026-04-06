@@ -1,0 +1,32 @@
+<div class="auth-container" style="display: flex; justify-content: center; align-items: center; min-height: 80vh;">
+  <div id="clerk-sign-up"></div>
+</div>
+
+<script>
+  async function initClerkSignUp() {
+    const container = document.getElementById('clerk-sign-up');
+    
+    if (!container) return;
+
+    if (typeof Clerk === 'undefined') {
+      console.log("Waiting for Clerk script...");
+      setTimeout(initClerkSignUp, 100);
+      return;
+    }
+
+    if (!Clerk.loaded) {
+      await Clerk.load();
+    }
+
+    Clerk.mountSignUp(container, {
+      afterSignUpUrl: '/dashboard', // Change this to your post-signup route
+      signInUrl: '/sign-in'         // Links the "Already have an account?" text
+    });
+  }
+
+  document.addEventListener('turbo:load', initClerkSignUp);
+
+  if (document.readyState === "complete") { 
+    initClerkSignUp(); 
+  }
+</script>
