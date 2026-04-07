@@ -22,4 +22,11 @@ RSpec.describe "Authentication and voting", type: :system do
 
     expect(page).to have_current_path("/sign-in", ignore_query: true)
   end
+
+  it "provides an application-controlled sign-out endpoint" do
+    visit "/sign-out"
+
+    expect(page).to have_content("Signing you out")
+    expect(page).to have_link("continue to sign in")
+  end
 end

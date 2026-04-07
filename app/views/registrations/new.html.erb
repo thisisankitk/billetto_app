@@ -19,8 +19,8 @@
     }
 
     Clerk.mountSignUp(container, {
-      afterSignUpUrl: '/dashboard', // Change this to your post-signup route
-      signInUrl: '/sign-in'         // Links the "Already have an account?" text
+      afterSignUpUrl: '<%= ENV["CLERK_AFTER_SIGN_UP_URL"] %>',
+      signInUrl: '<%= ENV["CLERK_SIGN_IN_URL"] %>'
     });
   }
 

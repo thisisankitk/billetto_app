@@ -20,8 +20,8 @@ module BillettoApp
     ENV["CLERK_PUBLISHABLE_KEY"] ||= Rails.application.credentials.dig(:clerk, :publishable_key)
     ENV["CLERK_SIGN_IN_URL"] ||= "/sign-in"
     ENV["CLERK_SIGN_UP_URL"] ||= "/sign-up"
-    ENV["CLERK_AFTER_SIGN_IN_URL"] ||= "/dashboard"
-    ENV["CLERK_AFTER_SIGN_UP_URL"] ||= "/onboarding"
+    ENV["CLERK_AFTER_SIGN_IN_URL"] ||= "/"
+    ENV["CLERK_AFTER_SIGN_UP_URL"] ||= "/"
     ENV["CLERK_FRONTEND_API"] ||= Rails.application.credentials.dig(:clerk, :frontend_api)
     config.middleware.use Clerk::Rack::Middleware
     config.autoload_paths << Rails.root.join("app/domain")

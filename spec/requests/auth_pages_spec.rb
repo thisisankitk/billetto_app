@@ -22,4 +22,14 @@ RSpec.describe "Authentication pages", type: :request do
       expect(response.body).to include("clerk-sign-up")
     end
   end
+
+  describe "GET /sign-out" do
+    it "renders application-controlled sign-out page" do
+      get "/sign-out"
+
+      expect(response).to have_http_status(:ok)
+      expect(response.body).to include("Signing you out")
+      expect(response.body).to include("Clerk.signOut")
+    end
+  end
 end

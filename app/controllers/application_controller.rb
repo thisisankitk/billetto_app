@@ -12,6 +12,6 @@ class ApplicationController < ActionController::Base
   end
 
   def authenticate_user!
-    redirect_to "/sign-in" unless current_user.present?
+    redirect_to clerk.sign_in_url unless clerk.session
   end
 end

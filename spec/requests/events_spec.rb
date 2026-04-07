@@ -49,9 +49,7 @@ RSpec.describe "Events", type: :request do
       expect(response.body).to include("Previous")
     end
 
-    it "expects event cards to include a brief description" do
-      pending("Events index template currently omits event description")
-
+    it "includes a brief description in event cards" do
       Event.create!(
         external_id: "evt-desc",
         title: "Event with description",

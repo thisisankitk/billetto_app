@@ -1,7 +1,4 @@
 Rails.application.routes.draw do
-  get "registrations/new"
-  get "sessions/new"
-  get "events/index"
   # Define your application routes per the DSL in https://guides.rubyonrails.org/routing.html
 
   # Reveal health status on /up that returns 200 if the app boots with no exceptions, otherwise 500.
@@ -17,7 +14,9 @@ Rails.application.routes.draw do
   root "events#index"
   post "/events/:event_id/upvote", to: "votes#upvote"
   post "/events/:event_id/downvote", to: "votes#downvote"
-  # config/routes.rb
+
   get "/sign-in", to: "sessions#new"
   get "/sign-up", to: "registrations#new"
+  get "/sign-out", to: "sessions#destroy", as: :sign_out
+  delete "/sign-out", to: "sessions#destroy"
 end

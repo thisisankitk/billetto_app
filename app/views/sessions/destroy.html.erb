@@ -1,0 +1,33 @@
+<div class="auth-container" style="display: flex; justify-content: center; align-items: center; min-height: 60vh; flex-direction: column; gap: 10px;">
+  <h2>Signing you out...</h2>
+  <p>
+    If you are not redirected,
+    <a href="<%= clerk.sign_in_url %>">continue to sign in</a>.
+  </p>
+</div>
+
+<noscript>
+  <div style="padding: 12px; margin: 12px 0; background: #fff3cd; color: #856404;">
+    JavaScript is required to complete Clerk sign-out. You can continue to sign in from
+    <a href="<%= clerk.sign_in_url %>">this link</a>.
+  </div>
+</noscript>
+
+<script>
+  document.addEventListener('turbo:load', async function () {
+    const redirectUrl = '<%= clerk.sign_in_url %>';
+
+    try {
+      if (window.Clerk) {
+        if (!Clerk.loaded) {
+          await Clerk.load();
+        }
+        await Clerk.signOut();
+      }
+    } catch (error) {
+      console.error('Failed to sign out from Clerk', error);
+    } finally {
+      window.location.assign(redirectUrl);
+    }
+  });
+</script>

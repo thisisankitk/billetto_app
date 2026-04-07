@@ -7,7 +7,10 @@ RSpec.describe "Votes", type: :request do
 
   describe "POST /events/:event_id/upvote" do
     context "when user is not authenticated" do
+      let(:clerk) { instance_double("ClerkContext", session: nil, sign_in_url: "/sign-in") }
+
       before do
+        allow_any_instance_of(ApplicationController).to receive(:clerk).and_return(clerk)
         allow_any_instance_of(ApplicationController).to receive(:current_user).and_return(nil)
       end
 
@@ -21,8 +24,10 @@ RSpec.describe "Votes", type: :request do
     context "when user is authenticated" do
       let(:user) { Struct.new(:id).new("user_100") }
       let(:command_bus) { instance_double(Command::Bus) }
+      let(:clerk) { instance_double("ClerkContext", session: true, sign_in_url: "/sign-in") }
 
       before do
+        allow_any_instance_of(ApplicationController).to receive(:clerk).and_return(clerk)
         allow_any_instance_of(ApplicationController).to receive(:current_user).and_return(user)
         allow(Rails.configuration).to receive(:command_bus).and_return(command_bus)
       end
@@ -57,7 +62,10 @@ RSpec.describe "Votes", type: :request do
 
   describe "POST /events/:event_id/downvote" do
     context "when user is not authenticated" do
+      let(:clerk) { instance_double("ClerkContext", session: nil, sign_in_url: "/sign-in") }
+
       before do
+        allow_any_instance_of(ApplicationController).to receive(:clerk).and_return(clerk)
         allow_any_instance_of(ApplicationController).to receive(:current_user).and_return(nil)
       end
 
@@ -71,8 +79,10 @@ RSpec.describe "Votes", type: :request do
     context "when user is authenticated" do
       let(:user) { Struct.new(:id).new("user_101") }
       let(:command_bus) { instance_double(Command::Bus) }
+      let(:clerk) { instance_double("ClerkContext", session: true, sign_in_url: "/sign-in") }
 
       before do
+        allow_any_instance_of(ApplicationController).to receive(:clerk).and_return(clerk)
         allow_any_instance_of(ApplicationController).to receive(:current_user).and_return(user)
         allow(Rails.configuration).to receive(:command_bus).and_return(command_bus)
       end

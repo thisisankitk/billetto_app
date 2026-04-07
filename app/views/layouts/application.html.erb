@@ -43,7 +43,14 @@
     </script>
   </head>
   <body>
-    <nav><div id="user-button"></div> </nav>
+    <nav style="display: flex; justify-content: flex-end; align-items: center; gap: 12px; padding: 8px 0;">
+      <div id="user-button"></div>
+      <% if current_user.present? %>
+        <%= link_to "Sign out", sign_out_path, data: { turbo: false } %>
+      <% else %>
+        <%= link_to "Sign in", "/sign-in" %>
+      <% end %>
+    </nav>
     <% if flash[:notice] %>
       <div style="padding: 10px; background-color: #d4edda; color: #155724; margin-bottom: 10px;">
         <%= flash[:notice] %>

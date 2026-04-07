@@ -8,7 +8,10 @@
       if (!Clerk.loaded) {
         await Clerk.load();
       }
-      Clerk.mountSignIn(container);
+      Clerk.mountSignIn(container, {
+        signUpUrl: '<%= ENV["CLERK_SIGN_UP_URL"] %>',
+        afterSignInUrl: '<%= ENV["CLERK_AFTER_SIGN_IN_URL"] %>'
+      });
     }
   });
 </script>
