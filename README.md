@@ -1,15 +1,18 @@
 # Billetto Event Voting Application
 
-Rails 8 application that fetches public events from Billetto, stores them locally, displays them with pagination, and lets authenticated users vote exactly once per event. Votes are recorded as immutable events using Rails Event Store.
+Rails 8 application that fetches public events from Billetto, stores them locally, displays them with pagination, and lets authenticated users vote on events. Votes are recorded as immutable events using Rails Event Store.
 
 ## Assignment Status
 
 Implemented:
 - Billetto API ingestion with pagination and retry behavior
 - Event listing page with vote counters and pagination
+- Event list filtering (`upcoming`, `past`, `all`)
 - Clerk authentication with sign-in, sign-up, and sign-out flow
 - Voting modeled as commands plus domain events (event sourcing)
 - Read model projection to keep vote counters on events table
+- Vote History table on event cards sourced from Rails Event Store (`user_id`, `latest_vote`, `total_votes_by_user`)
+- Request-level vote history aggregation to avoid per-card event store scans
 - RSpec test suite across request, model, service, job, domain, and system layers
 
 Open improvements:
@@ -42,15 +45,27 @@ Open improvements:
 1. Authenticated user submits upvote or downvote action.
 2. `VotesController` creates a command (`Voting::UpvoteEvent` or `Voting::DownvoteEvent`) and sends it through the command bus.
 3. `Command::Bus` validates and executes command inside a database transaction, with correlation instrumentation.
-4. Command publishes domain event (`Voting::EventUpvoted` or `Voting::EventDownvoted`) to stream `User$<user_id>$Event$<event_id>` with `expected_version: :none`.
-5. Rails Event Store subscription invokes `Voting::ReadModels::EventVotes` to increment denormalized counters in `events.upvotes_count` or `events.downvotes_count`.
-6. Duplicate vote attempts raise `WrongExpectedEventVersion` and controller shows user-facing alert.
+4. Command reads the latest event in stream `User$<user_id>$Event$<event_id>` and only publishes when there is no previous vote or the previous vote is opposite.
+5. Published domain event (`Voting::EventUpvoted` or `Voting::EventDownvoted`) is appended to that user-event stream.
+6. Rails Event Store subscription invokes `Voting::ReadModels::EventVotes` to increment the chosen counter and decrement the opposite counter in the `events` read model.
+7. Repeating the same vote type becomes a no-op at command level.
+
+### 3) Vote History flow on index page
+
+1. `EventsController#index` loads paginated events and precomputes vote history once with `Event.vote_history_by_event_ids(@events.map(&:id))`.
+2. `Event.vote_history_by_event_ids` reads vote facts from Rails Event Store and groups by event and user.
+3. For each user row, UI shows:
+  - `user_id`
+  - `latest_vote` (`upvote` or `downvote`)
+  - `total_votes_by_user`
+4. `EventsHelper#vote_history_rows_for` performs O(1) hash lookup per card, avoiding repeated event store filtering in the view.
+5. The table is wrapped in a horizontal scroll container to stay usable on narrow cards/mobile widths.
 
 ## Key Endpoints
 
 | Method | Path | Purpose | Auth Required |
 |---|---|---|---|
-| GET | / | Event list with pagination (`?page=`) | No |
+| GET | / | Event list with pagination (`?page=`) and filter (`?show=upcoming|past|all`) | No |
 | POST | /events/:event_id/upvote | Cast upvote | Yes |
 | POST | /events/:event_id/downvote | Cast downvote | Yes |
 | GET | /sign-in | Clerk sign-in page | No |
@@ -71,14 +86,17 @@ Important columns:
 - `price_cents`, `currency`
 - `url`, `image_url`
 - `raw_payload` (full source payload for traceability)
-- `upvotes_count`, `downvotes_count` (projection output)
+- `upvotes_count`, `downvotes_count` (projection output for fast totals)
+
+Vote History section on the index page is not sourced from these counters; it is computed from Rails Event Store vote facts.
 
 ### Rails Event Store tables
 
 - `event_store_events`
 - `event_store_events_in_streams`
 
-These store immutable domain events and stream links used for duplicate-vote protection and auditability.
+These store immutable domain events and stream links used for vote-state checks and auditability.
+Vote history aggregation uses vote-event payload (`event_id`, `user_id`) and event type to derive latest vote and totals per user.
 
 ## Main Code Areas
 
@@ -109,6 +127,12 @@ Web layer:
 - `app/controllers/sessions_controller.rb`
 - `app/controllers/registrations_controller.rb`
 - `app/controllers/application_controller.rb`
+- `app/helpers/events_helper.rb`
+- `app/views/events/index.html.erb`
+- `app/assets/stylesheets/events.css`
+
+Read-model query for vote history:
+- `app/models/event.rb`
 
 ## Authentication Design (Clerk)
 
@@ -205,16 +229,19 @@ bundle exec rspec spec/system
 
 Current suite covers:
 - Auth redirects and page behavior
-- Voting success and duplicate-vote handling
+- Voting command stream-read behavior and publish rules
 - Ingestion parsing, upserting, and error handling
 - Job retry and pagination enqueue behavior
 - Command bus validation/instrumentation behavior
 - Event store subscriptions and read model projection
+- Event-store-backed vote history aggregation and rendering
 
 ## Design Decisions and Trade-offs
 
 - Votes are event-sourced to preserve audit history and enforce one-vote-per-user-per-event at stream level.
-- Event list uses denormalized counters for fast reads.
+- Event list uses denormalized counters for fast total counts.
+- Vote History intentionally reads from immutable vote facts to show user-level history details (`latest_vote` and per-user vote totals).
+- Vote history is precomputed once per request to avoid repeated per-card event filtering.
 - Ingestion stores full raw payload for debugging and source-of-truth comparison.
 - Command bus adds a central place for validation, transactions, and instrumentation.
 
