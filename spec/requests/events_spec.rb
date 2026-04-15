@@ -61,5 +61,39 @@ RSpec.describe "Events", type: :request do
 
       expect(response.body).to include("A short summary")
     end
+
+    it "shows vote history per event from Rails Event Store data" do
+      event_record = Event.create!(
+        external_id: "evt-vote-history",
+        title: "Event with votes",
+        starts_at: 2.days.from_now,
+        upvotes_count: 99,
+        downvotes_count: 88
+      )
+
+      Rails.configuration.event_store.publish(
+        Voting::EventUpvoted.strict(
+          data: { event_id: event_record.id.to_s, user_id: "user_123" }
+        ),
+        stream_name: "Event$#{event_record.id}"
+      )
+      Rails.configuration.event_store.publish(
+        Voting::EventDownvoted.strict(
+          data: { event_id: event_record.id.to_s, user_id: "user_123" }
+        ),
+        stream_name: "Event$#{event_record.id}"
+      )
+
+      get root_path
+
+      expect(response.body).to include("Vote History")
+      expect(response.body).to include("user_id")
+      expect(response.body).to include("latest_vote")
+      expect(response.body).to include("total_votes_by_user")
+
+      expect(response.body).to include("user_123")
+      expect(response.body).to include("downvote")
+      expect(response.body).to include("2")
+    end
   end
 end

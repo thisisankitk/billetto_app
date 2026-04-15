@@ -59,4 +59,130 @@ RSpec.describe Event, type: :model do
       expect(Event.recent_first.to_a).to eq([ newer, older ])
     end
   end
+
+  describe "#vote_history_rows" do
+    it "returns latest vote and total votes grouped by user for one event" do
+      event_record = Event.create!(
+        external_id: "evt-history",
+        title: "History",
+        starts_at: 1.day.from_now
+      )
+      other_event = Event.create!(
+        external_id: "evt-other",
+        title: "Other",
+        starts_at: 1.day.from_now
+      )
+
+      event_store = Rails.configuration.event_store
+
+      event_store.publish(
+        Voting::EventUpvoted.strict(
+          data: { event_id: event_record.id.to_s, user_id: "user_1" }
+        ),
+        stream_name: "Event$#{event_record.id}"
+      )
+      event_store.publish(
+        Voting::EventDownvoted.strict(
+          data: { event_id: event_record.id.to_s, user_id: "user_1" }
+        ),
+        stream_name: "Event$#{event_record.id}"
+      )
+      event_store.publish(
+        Voting::EventUpvoted.strict(
+          data: { event_id: event_record.id.to_s, user_id: "user_2" }
+        ),
+        stream_name: "Event$#{event_record.id}"
+      )
+
+      event_store.publish(
+        Voting::EventDownvoted.strict(
+          data: { event_id: other_event.id.to_s, user_id: "user_1" }
+        ),
+        stream_name: "Event$#{other_event.id}"
+      )
+
+      expect(event_record.vote_history_rows).to eq(
+        [
+          {
+            user_id: "user_1",
+            latest_vote: "downvote",
+            total_votes_by_user: 2
+          },
+          {
+            user_id: "user_2",
+            latest_vote: "upvote",
+            total_votes_by_user: 1
+          }
+        ]
+      )
+    end
+  end
+
+  describe ".vote_history_by_event_ids" do
+    it "returns grouped vote history for all requested events" do
+      event_one = Event.create!(
+        external_id: "evt-history-1",
+        title: "History 1",
+        starts_at: 1.day.from_now
+      )
+      event_two = Event.create!(
+        external_id: "evt-history-2",
+        title: "History 2",
+        starts_at: 1.day.from_now
+      )
+      ignored_event = Event.create!(
+        external_id: "evt-history-ignored",
+        title: "History ignored",
+        starts_at: 1.day.from_now
+      )
+
+      event_store = Rails.configuration.event_store
+
+      event_store.publish(
+        Voting::EventUpvoted.strict(
+          data: { event_id: event_one.id.to_s, user_id: "user_1" }
+        ),
+        stream_name: "Event$#{event_one.id}"
+      )
+      event_store.publish(
+        Voting::EventDownvoted.strict(
+          data: { event_id: event_one.id.to_s, user_id: "user_1" }
+        ),
+        stream_name: "Event$#{event_one.id}"
+      )
+      event_store.publish(
+        Voting::EventUpvoted.strict(
+          data: { event_id: event_two.id.to_s, user_id: "user_2" }
+        ),
+        stream_name: "Event$#{event_two.id}"
+      )
+      event_store.publish(
+        Voting::EventDownvoted.strict(
+          data: { event_id: ignored_event.id.to_s, user_id: "user_9" }
+        ),
+        stream_name: "Event$#{ignored_event.id}"
+      )
+
+      result = Event.vote_history_by_event_ids([ event_one.id, event_two.id ])
+
+      expect(result).to eq(
+        {
+          event_one.id.to_s => [
+            {
+              user_id: "user_1",
+              latest_vote: "downvote",
+              total_votes_by_user: 2
+            }
+          ],
+          event_two.id.to_s => [
+            {
+              user_id: "user_2",
+              latest_vote: "upvote",
+              total_votes_by_user: 1
+            }
+          ]
+        }
+      )
+    end
+  end
 end

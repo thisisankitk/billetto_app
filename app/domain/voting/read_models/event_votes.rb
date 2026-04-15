@@ -4,9 +4,13 @@ module Voting
       def call(event)
         case event
         when Voting::EventUpvoted
-          Event.find(event.data[:event_id]).increment!(:upvotes_count)
+          event = Event.find(event.data[:event_id])
+          event.increment!(:upvotes_count)
+          event.decrement!(:downvotes_count)
         when Voting::EventDownvoted
-          Event.find(event.data[:event_id]).increment!(:downvotes_count)
+          event = Event.find(event.data[:event_id])
+          event.increment!(:downvotes_count)
+          event.decrement!(:upvotes_count)
         end
       end
     end

@@ -25,8 +25,8 @@ module Billetto
         f.request :json
         f.response :raise_error
 
-        f.headers['Api-Keypair'] = api_keypair
-        f.headers['Accept'] = 'application/json'
+        f.headers["Api-Keypair"] = api_keypair
+        f.headers["Accept"] = "application/json"
       end
     end
 

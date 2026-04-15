@@ -97,3 +97,47 @@ body {
   padding: 15px;
   display: grid;
 }
+
+.vote-history {
+  margin-top: 14px;
+  border-top: 1px solid #e5e7eb;
+  padding-top: 10px;
+}
+
+.vote-history h4 {
+  margin: 0;
+  font-size: 14px;
+}
+
+.vote-history-table-wrap {
+  width: 100%;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+  margin-top: 8px;
+}
+
+.vote-history-table {
+  width: 100%;
+  min-width: 420px;
+  border-collapse: collapse;
+  font-size: 13px;
+}
+
+.vote-history-table th,
+.vote-history-table td {
+  border: 1px solid #e5e7eb;
+  padding: 6px 8px;
+  text-align: left;
+  white-space: nowrap;
+}
+
+.vote-history-table th {
+  background-color: #f8fafc;
+  font-weight: 600;
+}
+
+.vote-history-empty {
+  margin-top: 8px;
+  color: #6b7280;
+  font-size: 13px;
+}

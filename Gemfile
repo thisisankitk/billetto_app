@@ -40,9 +40,9 @@ gem "thruster", require: false
 # Use Active Storage variants [https://guides.rubyonrails.org/active_storage_overview.html#transforming-images]
 gem "image_processing", "~> 1.2"
 
-gem 'rails_event_store'
-gem 'faraday'
-gem 'clerk-sdk-ruby', require: "clerk"
+gem "rails_event_store"
+gem "faraday"
+gem "clerk-sdk-ruby", require: "clerk"
 
 group :development, :test do
   # See https://guides.rubyonrails.org/debugging_rails_applications.html#debugging-with-the-debug-gem
@@ -67,5 +67,5 @@ group :test do
   # Use system testing [https://guides.rubyonrails.org/testing.html#system-testing]
   gem "capybara"
   gem "selenium-webdriver"
-  gem 'rspec-rails'
+  gem "rspec-rails"
 end

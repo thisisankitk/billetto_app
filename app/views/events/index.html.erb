@@ -44,6 +44,36 @@
                     method: :post %>
             </div>
           </div>
+
+          <% vote_history = vote_history_rows_for(event, @vote_history_by_event_id) %>
+          <div class="vote-history">
+            <h4>Vote History</h4>
+
+            <% if vote_history.any? %>
+              <div class="vote-history-table-wrap">
+                <table class="vote-history-table">
+                  <thead>
+                    <tr>
+                      <th>user_id</th>
+                      <th>latest_vote</th>
+                      <th>total_votes_by_user</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <% vote_history.each do |row| %>
+                      <tr>
+                        <td><%= row[:user_id] %></td>
+                        <td><%= row[:latest_vote] %></td>
+                        <td><%= row[:total_votes_by_user] %></td>
+                      </tr>
+                    <% end %>
+                  </tbody>
+                </table>
+              </div>
+            <% else %>
+              <p class="vote-history-empty">No votes yet.</p>
+            <% end %>
+          </div>
         </div>
 
         <% description = event.description.to_s %>
