@@ -2,36 +2,29 @@ class VotesController < ApplicationController
   before_action :authenticate_user!
 
   def upvote
-    command_bus.call(
-      Voting::UpvoteEvent.new(
-        event_id: params[:event_id],
-        user_id: current_user.id
-      )
-    )
-
-    redirect_to root_path
-
-  rescue RubyEventStore::WrongExpectedEventVersion
-    flash[:alert] = "You have already voted"
-    redirect_to root_path
+    cast_vote(Voting::UpvoteEvent)
   end
 
   def downvote
+    cast_vote(Voting::DownvoteEvent)
+  end
+
+  private
+
+  def cast_vote(command_class)
     command_bus.call(
-      Voting::DownvoteEvent.new(
+      command_class.new(
         event_id: params[:event_id],
         user_id: current_user.id
       )
     )
 
-    redirect_to root_path
+    redirect_back fallback_location: root_path
 
   rescue RubyEventStore::WrongExpectedEventVersion
-    flash[:alert] = "You have already voted"
-    redirect_to root_path
+    flash[:alert] = "Your vote changed while processing. Please try again."
+    redirect_back fallback_location: root_path
   end
-
-  private
 
   def command_bus
     Rails.configuration.command_bus

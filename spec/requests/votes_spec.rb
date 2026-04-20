@@ -44,7 +44,7 @@ RSpec.describe "Votes", type: :request do
         expect(response).to redirect_to(root_path)
       end
 
-      it "shows an alert when user has already voted" do
+      it "shows an alert when vote state changed during processing" do
         allow(command_bus).to receive(:call).and_raise(
           RubyEventStore::WrongExpectedEventVersion.new("already voted")
         )
@@ -55,7 +55,7 @@ RSpec.describe "Votes", type: :request do
 
         follow_redirect!
 
-        expect(response.body).to include("You have already voted")
+        expect(response.body).to include("Your vote changed while processing. Please try again.")
       end
     end
   end
@@ -99,7 +99,7 @@ RSpec.describe "Votes", type: :request do
         expect(response).to redirect_to(root_path)
       end
 
-      it "shows an alert when user has already voted" do
+      it "shows an alert when vote state changed during processing" do
         allow(command_bus).to receive(:call).and_raise(
           RubyEventStore::WrongExpectedEventVersion.new("already voted")
         )
@@ -110,7 +110,7 @@ RSpec.describe "Votes", type: :request do
 
         follow_redirect!
 
-        expect(response.body).to include("You have already voted")
+        expect(response.body).to include("Your vote changed while processing. Please try again.")
       end
     end
   end

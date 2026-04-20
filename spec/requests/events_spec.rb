@@ -33,7 +33,7 @@ RSpec.describe "Events", type: :request do
         Event.create!(
           external_id: "evt-page-#{idx}",
           title: "Event #{idx}",
-          starts_at: idx.hours.from_now
+            starts_at: (idx + 1).hours.from_now
         )
       end
 
@@ -47,6 +47,33 @@ RSpec.describe "Events", type: :request do
 
       expect(response.body).to include("Event 0")
       expect(response.body).to include("Previous")
+    end
+
+    it "uses filtered counts for pagination and preserves show param in links" do
+      Event.create!(
+        external_id: "evt-upcoming-only",
+        title: "Upcoming only",
+        starts_at: 2.days.from_now
+      )
+
+      30.times do |idx|
+        Event.create!(
+          external_id: "evt-past-#{idx}",
+          title: "Past #{idx}",
+          starts_at: 2.days.ago
+        )
+      end
+
+      get root_path(show: "upcoming")
+
+      expect(response).to have_http_status(:ok)
+      expect(response.body).not_to include("Next")
+
+      get root_path(show: "past")
+
+      expect(response).to have_http_status(:ok)
+      expect(response.body).to include("Next")
+      expect(response.body).to include("show=past")
     end
 
     it "includes a brief description in event cards" do

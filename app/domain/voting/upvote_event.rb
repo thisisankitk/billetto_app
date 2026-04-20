@@ -9,10 +9,12 @@ module Voting
 
     def call
       stream = "User$#{user_id}$Event$#{event_id}"
-      event = event_store.read
-                        .stream(stream)
-                        .last
-      if event.nil? || event.class == Voting::EventDownvoted
+      stream_events = event_store.read.stream(stream).to_a
+      last_event = stream_events.last
+
+      if last_event.nil? || last_event.is_a?(Voting::EventDownvoted)
+        expected_version = stream_events.empty? ? :none : stream_events.size - 1
+
         event_store.publish(
           EventUpvoted.strict(
             data: {
@@ -20,7 +22,8 @@ module Voting
               user_id: user_id
             }
           ),
-          stream_name: stream
+          stream_name: stream,
+          expected_version: expected_version
         )
       end
     end

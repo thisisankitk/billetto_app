@@ -1,7 +1,7 @@
 # Read about fixtures at https://api.rubyonrails.org/classes/ActiveRecord/FixtureSet.html
 
 one:
-  external_id: MyString
+  external_id: fixture_event_one
   title: MyString
   description: MyText
   starts_at: 2026-04-05 17:16:46
@@ -16,7 +16,7 @@ one:
   raw_payload: 
 
 two:
-  external_id: MyString
+  external_id: fixture_event_two
   title: MyString
   description: MyText
   starts_at: 2026-04-05 17:16:46

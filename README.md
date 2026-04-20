@@ -11,12 +11,10 @@ Implemented:
 - Clerk authentication with sign-in, sign-up, and sign-out flow
 - Voting modeled as commands plus domain events (event sourcing)
 - Read model projection to keep vote counters on events table
-- Vote History table on event cards sourced from Rails Event Store (`user_id`, `latest_vote`, `total_votes_by_user`)
-- Request-level vote history aggregation to avoid per-card event store scans
+- Vote History projection table (`event_vote_histories`) for fast per-event user vote history (`user_id`, `latest_vote`, `total_votes_by_user`)
 - RSpec test suite across request, model, service, job, domain, and system layers
 
 Open improvements:
-- CI workflow still runs Rails test tasks (Minitest commands) and should be switched to RSpec commands
 - Model-level validation can be tightened further for required event attributes such as start time and URL depending on business rules
 
 ## Tech Stack
@@ -53,7 +51,7 @@ Open improvements:
 ### 3) Vote History flow on index page
 
 1. `EventsController#index` loads paginated events and precomputes vote history once with `Event.vote_history_by_event_ids(@events.map(&:id))`.
-2. `Event.vote_history_by_event_ids` reads vote facts from Rails Event Store and groups by event and user.
+2. `Event.vote_history_by_event_ids` reads from `event_vote_histories` projection rows scoped to the current page event IDs.
 3. For each user row, UI shows:
   - `user_id`
   - `latest_vote` (`upvote` or `downvote`)
@@ -88,7 +86,17 @@ Important columns:
 - `raw_payload` (full source payload for traceability)
 - `upvotes_count`, `downvotes_count` (projection output for fast totals)
 
-Vote History section on the index page is not sourced from these counters; it is computed from Rails Event Store vote facts.
+Vote History section on the index page is not sourced from these counters; it is read from `event_vote_histories` projection rows maintained by vote event subscribers.
+
+### event_vote_histories table
+
+Stores per-event, per-user vote history read model.
+
+Important columns:
+- `event_id` (foreign key to events)
+- `user_id`
+- `latest_vote`
+- `total_votes_by_user`
 
 ### Rails Event Store tables
 
@@ -133,6 +141,7 @@ Web layer:
 
 Read-model query for vote history:
 - `app/models/event.rb`
+- `app/models/event_vote_history.rb`
 
 ## Authentication Design (Clerk)
 

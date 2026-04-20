@@ -28,18 +28,17 @@
             <%= event.price_cents.present? ? "#{event.price_cents / 100.0} #{event.currency}" : "Free" %>
           </div>
 
-          <!-- ACTION AREA (IMPORTANT for next step) -->
           <div class="event-actions">
-
-            <a href="<%= event.url %>" target="_blank" class="btn btn-outline">
+            <a href="<%= event.url %>" target="_blank" rel="noopener noreferrer" class="btn btn-outline">
               View
             </a>
-            <div class="event-actions">
-                <%= button_to "👍 #{event.upvotes_count}",
+
+            <div class="event-vote-actions">
+              <%= button_to "👍 #{event.upvotes_count}",
                     "/events/#{event.id}/upvote",
                     method: :post %>
 
-                <%= button_to "👎 #{event.downvotes_count}",
+              <%= button_to "👎 #{event.downvotes_count}",
                     "/events/#{event.id}/downvote",
                     method: :post %>
             </div>
@@ -80,8 +79,8 @@
         <div class="event-description">
           <p><%= truncate(description, length: 120) %></p>
           <% if description.length > 120 %>
-            <div style="margin-top: 10px;">
-              <a href="<%= event.url %>" target="_blank" class="btn btn-outline">
+            <div class="event-read-more">
+              <a href="<%= event.url %>" target="_blank" rel="noopener noreferrer" class="btn btn-outline">
                 Read More
               </a>
             </div>
@@ -91,14 +90,13 @@
     <% end %>
   </div>
 
-  <!-- Pagination -->
-  <div style="margin-top: 30px;">
+  <div class="events-pagination">
     <% if @page > 1 %>
-      <%= link_to "← Previous", root_path(page: @page - 1) %>
+      <%= link_to "← Previous", root_path(page: @page - 1, show: params[:show]) %>
     <% end %>
 
     <% if @page < @total_pages %>
-      <%= link_to "Next →", root_path(page: @page + 1) %>
+      <%= link_to "Next →", root_path(page: @page + 1, show: params[:show]) %>
     <% end %>
   </div>
 </div>
